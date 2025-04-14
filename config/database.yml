@@ -1,0 +1,27 @@
+# config/database.yml
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("DATABASE_HOST") { 'localhost' } %>
+  port: <%= ENV.fetch("DATABASE_PORT") { 5432 } %>
+  username: <%= ENV.fetch("DATABASE_USER") { 'postgres' } %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD") { '' } %> # Provide empty default or handle differently if needed
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_DB") { "ruby_app_development" } %>
+
+test:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_TEST_DB") { "ruby_app_test" } %> # Use a different env var for test DB if needed
+
+production:
+  <<: *default
+  # Use DATABASE_URL env var in production for simplicity and security
+  # Format: postgresql://user:password@host:port/database
+  url: <%= ENV.fetch("DATABASE_URL") { "" } %>
+  # Or configure individual variables like development/test if preferred
+  # database: ruby_app_production
+  # username: ruby_app
+  # password: <%= ENV['RUBY_APP_DATABASE_PASSWORD'] %>

@@ -1,0 +1,71 @@
+# docker-compose.yml
+version: '3.9' # Specify compose file version
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:15 # Use a specific PostgreSQL version
+    volumes:
+      # Persist database data using a named volume
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      # Set credentials for the database.
+      # IMPORTANT: Use a strong password in production/real scenarios!
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password # <- CHANGE THIS if needed, keep consistent below
+      POSTGRES_DB: ruby_app_development # Database name based on Rails convention
+    networks:
+      - ruby_app_network
+
+  # Rails Application Service
+  app:
+    build: . # Build the image from the Dockerfile in the current directory
+    volumes:
+      # Mount the current directory (.) on the host to /ruby-app in the container
+      # This allows live code changes during development.
+      - .:/ruby-app
+      # Mount a named volume for gems to persist them across builds/runs
+      - gems:/gems
+      # Exclude node_modules from the main mount if it exists to avoid conflicts
+      # This path within the volume definition tells Docker Compose to manage this directory solely within the container using the volume.
+      - /ruby-app/node_modules
+    ports:
+      # Map port 3000 on the host to port 3000 in the container
+      - "3000:3000"
+    depends_on:
+      # Ensure the 'db' service starts before the 'app' service
+      - db
+    environment:
+      # Pass database connection details to the Rails app
+      # These should match the 'db' service environment variables
+      DATABASE_HOST: db # 'db' is the service name defined above
+      DATABASE_PORT: 5432 # Default Postgres port
+      DATABASE_USER: postgres # Must match POSTGRES_USER in 'db' service
+      DATABASE_PASSWORD: password # Must match POSTGRES_PASSWORD in 'db' service
+      DATABASE_DB: ruby_app_development # Must match POSTGRES_DB in 'db' service
+      # Set Rails environment
+      RAILS_ENV: development
+      # Ensure logs go to STDOUT (picked up by 'docker-compose logs')
+      RAILS_LOG_TO_STDOUT: "true"
+      # Share the bundle path defined in the Dockerfile
+      BUNDLE_PATH: /gems
+      # Environment for Node.js/Yarn within the container
+      NODE_ENV: development
+      # If using Webpacker/Vite dev server, bind it to allow host access
+      # WEBPACKER_DEV_SERVER_HOST: 0.0.0.0 # Uncomment/adjust if using webpacker
+      # VITE_DEV_SERVER_HOST: 0.0.0.0 # Uncomment/adjust if using vite
+    networks:
+      - ruby_app_network
+    # Keep STDIN open for interactive sessions like `rails console` or `binding.irb`
+    stdin_open: true
+    tty: true
+
+# Define named volumes for data persistence
+volumes:
+  postgres_data:
+  gems:
+
+# Define a network for services to communicate
+networks:
+  ruby_app_network:
+    driver: bridge
