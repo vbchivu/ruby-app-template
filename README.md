@@ -49,7 +49,7 @@ sudo apt install -y autoconf bison build-essential libssl-dev libyaml-dev librea
 ### 2.1. Clone the Repository
 
 ```bash
-git clone https://github.com/vbchivu/ruby_app.git ruby_app
+git clone https://github.com/vbchivu/ruby_app.git
 cd ruby_app
 ```
 
